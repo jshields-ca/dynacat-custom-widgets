@@ -139,6 +139,21 @@
       </div>
       {{ end }}
 
+      {{/* ── Projects ─────────────────────────────────────────────── */}}
+      {{ if gt (len $projects) 0 }}
+      <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span class="size-h4">Active Projects</span>
+          <span class="color-subdue size-h4">{{ len $projects }}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
+          {{ range $projects }}
+          <a href="https://app.todoist.com/app/project/{{ .String "id" }}" target="_blank" class="size-h5 color-primary" style="background:rgba(128,128,128,0.1);border-radius:4px;padding:1px 7px;text-decoration:none;transition:opacity 0.15s;opacity:0.85;" onmouseover="this.style.opacity='1';this.style.background='rgba(128,128,128,0.2)'" onmouseout="this.style.opacity='0.85';this.style.background='rgba(128,128,128,0.1)'">{{ .String "name" }}</a>
+          {{ end }}
+        </div>
+      </div>
+      {{ end }}
+
       {{/* ── Labels / Tag cloud (top 5 by frequency) ──────────────── */}}
       {{ if $s1 }}
       <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15)">
@@ -151,21 +166,6 @@
           {{ if $s3 }}<a href="https://app.todoist.com/app/label/{{ $s3 }}" target="_blank" class="size-h5 color-primary" style="background:rgba(128,128,128,0.1);border-radius:4px;padding:1px 7px;text-decoration:none;transition:opacity 0.15s;opacity:0.85;" onmouseover="this.style.opacity='1';this.style.background='rgba(128,128,128,0.2)'" onmouseout="this.style.opacity='0.85';this.style.background='rgba(128,128,128,0.1)'">{{ $s3 }} ({{ $c3 }})</a>{{ end }}
           {{ if $s4 }}<a href="https://app.todoist.com/app/label/{{ $s4 }}" target="_blank" class="size-h5 color-primary" style="background:rgba(128,128,128,0.1);border-radius:4px;padding:1px 7px;text-decoration:none;transition:opacity 0.15s;opacity:0.85;" onmouseover="this.style.opacity='1';this.style.background='rgba(128,128,128,0.2)'" onmouseout="this.style.opacity='0.85';this.style.background='rgba(128,128,128,0.1)'">{{ $s4 }} ({{ $c4 }})</a>{{ end }}
           {{ if $s5 }}<a href="https://app.todoist.com/app/label/{{ $s5 }}" target="_blank" class="size-h5 color-primary" style="background:rgba(128,128,128,0.1);border-radius:4px;padding:1px 7px;text-decoration:none;transition:opacity 0.15s;opacity:0.85;" onmouseover="this.style.opacity='1';this.style.background='rgba(128,128,128,0.2)'" onmouseout="this.style.opacity='0.85';this.style.background='rgba(128,128,128,0.1)'">{{ $s5 }} ({{ $c5 }})</a>{{ end }}
-        </div>
-      </div>
-      {{ end }}
-
-      {{/* ── Projects ─────────────────────────────────────────────── */}}
-      {{ if gt (len $projects) 0 }}
-      <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15)">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <span class="size-h4">Active Projects</span>
-          <span class="color-subdue size-h4">{{ len $projects }}</span>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px">
-          {{ range $projects }}
-          <a href="https://app.todoist.com/app/project/{{ .String "id" }}" target="_blank" class="size-h5 color-primary" style="background:rgba(128,128,128,0.1);border-radius:4px;padding:1px 7px;text-decoration:none;transition:opacity 0.15s;opacity:0.85;" onmouseover="this.style.opacity='1';this.style.background='rgba(128,128,128,0.2)'" onmouseout="this.style.opacity='0.85';this.style.background='rgba(128,128,128,0.1)'">{{ .String "name" }}</a>
-          {{ end }}
         </div>
       </div>
       {{ end }}

@@ -1,111 +1,241 @@
-# dynacat-todoist
+# Todoist Dashboard
 
-Connect your Todoist productivity stats to your [Dynacat](https://github.com/Panonim/dynacat) self-hosted dashboard.
+A single consolidated `custom-api` widget for [Dynacat](https://github.com/Panonim/dynacat) that surfaces your Todoist productivity data at a glance:
 
-A single `custom-api` widget that shows karma, task stats, priority breakdown, labels, and projects — all in one place. No extra server required; Dynacat fetches the Todoist API directly.
+- Karma score with trend indicator (↑ / ↓)
+- Tasks completed today vs. your daily goal
+- All-time completed task count
+- Open task count with P1/P2/P3/P4 priority breakdown
+- Active projects as clickable badges, each linking directly into Todoist
+- Top 5 labels by frequency across open tasks, each linking directly into Todoist
+- Quick link to open Todoist
 
----
+No extra server required — Dynacat fetches the Todoist API directly at render time.
 
-## What It Shows
-
-| Section | Details |
-|---------|---------|
-| **Karma** | Current score with up/down trend indicator |
-| **Completed today** | Tasks done today vs. your daily goal |
-| **All-time completed** | Total tasks completed across all time |
-| **Open tasks** | Total count with P1/P2/P3/P4 priority breakdown (P4 covers "no priority" since both map to API priority=1) |
-| **Top Labels** | Top 5 labels by frequency across open tasks, sorted highest count first — each badge links directly to that label in Todoist |
-| **Active Projects** | All project names as compact badges with total count — each badge links directly to that project in Todoist |
-| **View Tasks on Todoist** | Subdued link to the Todoist app (fades in on hover) |
+> **Note:** Streak data (current streak, best streak) is not exposed by Todoist API v1. It is only visible inside the Todoist app's Productivity section. If Todoist ever adds these fields to their API, the widget will display them automatically.
 
 ---
 
-## Setup
+## Requirements
 
-### 1. Get your Todoist API token
+- A [Todoist](https://todoist.com) account
+- A Todoist personal API token (free accounts supported)
 
-1. Log in to [Todoist](https://todoist.com)
+---
+
+## Environment Variables
+
+Add the following to your Dynacat `.env` file:
+
+| Variable | Description |
+|----------|-------------|
+| `TODOIST_API_TOKEN` | Your Todoist personal API token |
+
+**How to get your API token:**
+1. Log in to Todoist
 2. Go to **Settings → Integrations → Developer**
-3. Copy your **API token**
+3. Copy the value under **API token**
 
-### 2. Add the token to your Dynacat `.env` file
+---
 
-```env
-TODOIST_API_TOKEN=your_personal_api_token_here
-```
+## Configuration
 
-### 3. Add the widget to your Dynacat `config.yml`
-
-Copy the full widget block from `widgets/todoist-dashboard.yml` and paste it into a column's `widgets:` list:
+Paste the contents of `widgets/todoist-dashboard.yml` into a column's `widgets:` list in your Dynacat `config.yml`:
 
 ```yaml
-pages:
-  - name: Home
-    columns:
-      - size: small
-        widgets:
-          # paste contents of widgets/todoist-dashboard.yml here
+- type: custom-api
+  title: Todoist
+  cache: 15m
+  url: https://api.todoist.com/api/v1/user
+  headers:
+    Authorization: Bearer ${TODOIST_API_TOKEN}
+  subrequests:
+    tasks:
+      url: https://api.todoist.com/api/v1/tasks
+      headers:
+        Authorization: Bearer ${TODOIST_API_TOKEN}
+    projects:
+      url: https://api.todoist.com/api/v1/projects
+      headers:
+        Authorization: Bearer ${TODOIST_API_TOKEN}
+  template: |
+    {{/* Tasks endpoint returns a bare array — try "." first, fall back to "results" */}}
+    {{ $tasks := (.Subrequest "tasks").JSON.Array "." }}
+    {{ if eq (len $tasks) 0 }}{{ $tasks = (.Subrequest "tasks").JSON.Array "results" }}{{ end }}
+    {{ $projects := (.Subrequest "projects").JSON.Array "results" }}
+
+    {{/* ── Pre-compute priority counts ───────────────────────────── */}}
+    {{ $p4 := 0 }}{{ $p3 := 0 }}{{ $p2 := 0 }}{{ $p1 := 0 }}
+    {{ range $tasks }}
+      {{ $p := .Int "priority" }}
+      {{ if eq $p 4 }}{{ $p4 = add $p4 1 }}
+      {{ else if eq $p 3 }}{{ $p3 = add $p3 1 }}
+      {{ else if eq $p 2 }}{{ $p2 = add $p2 1 }}
+      {{ else }}{{ $p1 = add $p1 1 }}
+      {{ end }}
+    {{ end }}
+
+    {{/* ── Pre-compute: top 5 labels by frequency (insertion sort) ── */}}
+    {{ $s1 := "" }}{{ $s2 := "" }}{{ $s3 := "" }}{{ $s4 := "" }}{{ $s5 := "" }}
+    {{ $c1 := 0 }}{{ $c2 := 0 }}{{ $c3 := 0 }}{{ $c4 := 0 }}{{ $c5 := 0 }}
+    {{ range $tasks }}{{ range .Array "labels" }}
+      {{ $lbl := .String "@this" }}
+      {{ if and (ne $lbl $s1) (ne $lbl $s2) (ne $lbl $s3) (ne $lbl $s4) (ne $lbl $s5) }}
+        {{ $count := 0 }}
+        {{ range $tasks }}{{ range .Array "labels" }}
+          {{ if eq (.String "@this") $lbl }}{{ $count = add $count 1 }}{{ end }}
+        {{ end }}{{ end }}
+        {{ if gt $count $c1 }}
+          {{ $s5 = $s4 }}{{ $c5 = $c4 }}{{ $s4 = $s3 }}{{ $c4 = $c3 }}{{ $s3 = $s2 }}{{ $c3 = $c2 }}{{ $s2 = $s1 }}{{ $c2 = $c1 }}{{ $s1 = $lbl }}{{ $c1 = $count }}
+        {{ else if gt $count $c2 }}
+          {{ $s5 = $s4 }}{{ $c5 = $c4 }}{{ $s4 = $s3 }}{{ $c4 = $c3 }}{{ $s3 = $s2 }}{{ $c3 = $c2 }}{{ $s2 = $lbl }}{{ $c2 = $count }}
+        {{ else if gt $count $c3 }}
+          {{ $s5 = $s4 }}{{ $c5 = $c4 }}{{ $s4 = $s3 }}{{ $c4 = $c3 }}{{ $s3 = $lbl }}{{ $c3 = $count }}
+        {{ else if gt $count $c4 }}
+          {{ $s5 = $s4 }}{{ $c5 = $c4 }}{{ $s4 = $lbl }}{{ $c4 = $count }}
+        {{ else if gt $count $c5 }}
+          {{ $s5 = $lbl }}{{ $c5 = $count }}
+        {{ end }}
+      {{ end }}
+    {{ end }}{{ end }}
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+
+      {{/* ── Karma ────────────────────────────────────────────────── */}}
+      {{ if .JSON.Exists "karma" }}
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="size-h4">Karma</span>
+        <span>
+          <span class="color-highlight size-h3" style="font-weight:600">{{ .JSON.Int "karma" }}</span>
+          {{ if .JSON.Exists "karma_trend" }}
+            {{ $trend := .JSON.String "karma_trend" }}
+            {{ if eq $trend "up" }}<span class="color-positive size-h4">&nbsp;&#9650;</span>
+            {{ else if eq $trend "down" }}<span class="color-negative size-h4">&nbsp;&#9660;</span>
+            {{ end }}
+          {{ end }}
+        </span>
+      </div>
+      {{ end }}
+
+      {{/* ── Completed today ──────────────────────────────────────── */}}
+      {{ if .JSON.Exists "completed_today" }}
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="size-h4">Completed today</span>
+        <span class="color-positive size-h3" style="font-weight:600">{{ .JSON.Int "completed_today" }}
+          {{ if .JSON.Exists "daily_goal" }}<span class="color-subdue size-h4">/ {{ .JSON.Int "daily_goal" }}</span>{{ end }}
+        </span>
+      </div>
+      {{ end }}
+
+      {{/* ── All-time completed ───────────────────────────────────── */}}
+      {{ if .JSON.Exists "completed_count" }}
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="size-h4">All-time completed</span>
+        <span class="color-primary size-h4">{{ .JSON.Int "completed_count" }}</span>
+      </div>
+      {{ else if .JSON.Exists "karma_completed_count" }}
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="size-h4">All-time completed</span>
+        <span class="color-primary size-h4">{{ .JSON.Int "karma_completed_count" }}</span>
+      </div>
+      {{ end }}
+
+      {{/* ── Open tasks + priority breakdown ─────────────────────── */}}
+      {{ if gt (len $tasks) 0 }}
+      <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span class="size-h4">Open tasks</span>
+          <span class="color-primary size-h3" style="font-weight:600">{{ len $tasks }}</span>
+        </div>
+        <div style="display:flex;gap:16px">
+          <span title="P1 – Very Urgent" style="display:flex;align-items:center;gap:4px">
+            <span class="color-negative size-h4">&#9679;</span>
+            <span class="size-h4">{{ $p4 }}</span>
+          </span>
+          <span title="P2 – Urgent" style="display:flex;align-items:center;gap:4px">
+            <span class="color-highlight size-h4">&#9679;</span>
+            <span class="size-h4">{{ $p3 }}</span>
+          </span>
+          <span title="P3 – Medium" style="display:flex;align-items:center;gap:4px">
+            <span class="color-primary size-h4">&#9679;</span>
+            <span class="size-h4">{{ $p2 }}</span>
+          </span>
+          <span title="P4 / No Priority" style="display:flex;align-items:center;gap:4px">
+            <span class="color-subdue size-h4">&#9675;</span>
+            <span class="size-h4">{{ $p1 }}</span>
+          </span>
+        </div>
+      </div>
+      {{ end }}
+
+      {{/* ── Projects ─────────────────────────────────────────────── */}}
+      {{ if gt (len $projects) 0 }}
+      <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span class="size-h4">Active Projects</span>
+          <span class="color-subdue size-h4">{{ len $projects }}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
+          {{ range $projects }}
+          <a href="https://app.todoist.com/app/project/{{ .String "id" }}" target="_blank" class="size-h5 color-primary" style="background:rgba(128,128,128,0.1);border-radius:4px;padding:1px 7px;text-decoration:none;transition:opacity 0.15s;opacity:0.85;" onmouseover="this.style.opacity='1';this.style.background='rgba(128,128,128,0.2)'" onmouseout="this.style.opacity='0.85';this.style.background='rgba(128,128,128,0.1)'">{{ .String "name" }}</a>
+          {{ end }}
+        </div>
+      </div>
+      {{ end }}
+
+      {{/* ── Labels / Tag cloud (top 5 by frequency) ──────────────── */}}
+      {{ if $s1 }}
+      <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span class="size-h4">Top Labels</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
+          <a href="https://app.todoist.com/app/label/{{ $s1 }}" target="_blank" class="size-h5 color-primary" style="background:rgba(128,128,128,0.1);border-radius:4px;padding:1px 7px;text-decoration:none;transition:opacity 0.15s;opacity:0.85;" onmouseover="this.style.opacity='1';this.style.background='rgba(128,128,128,0.2)'" onmouseout="this.style.opacity='0.85';this.style.background='rgba(128,128,128,0.1)'">{{ $s1 }} ({{ $c1 }})</a>
+          {{ if $s2 }}<a href="https://app.todoist.com/app/label/{{ $s2 }}" target="_blank" class="size-h5 color-primary" style="background:rgba(128,128,128,0.1);border-radius:4px;padding:1px 7px;text-decoration:none;transition:opacity 0.15s;opacity:0.85;" onmouseover="this.style.opacity='1';this.style.background='rgba(128,128,128,0.2)'" onmouseout="this.style.opacity='0.85';this.style.background='rgba(128,128,128,0.1)'">{{ $s2 }} ({{ $c2 }})</a>{{ end }}
+          {{ if $s3 }}<a href="https://app.todoist.com/app/label/{{ $s3 }}" target="_blank" class="size-h5 color-primary" style="background:rgba(128,128,128,0.1);border-radius:4px;padding:1px 7px;text-decoration:none;transition:opacity 0.15s;opacity:0.85;" onmouseover="this.style.opacity='1';this.style.background='rgba(128,128,128,0.2)'" onmouseout="this.style.opacity='0.85';this.style.background='rgba(128,128,128,0.1)'">{{ $s3 }} ({{ $c3 }})</a>{{ end }}
+          {{ if $s4 }}<a href="https://app.todoist.com/app/label/{{ $s4 }}" target="_blank" class="size-h5 color-primary" style="background:rgba(128,128,128,0.1);border-radius:4px;padding:1px 7px;text-decoration:none;transition:opacity 0.15s;opacity:0.85;" onmouseover="this.style.opacity='1';this.style.background='rgba(128,128,128,0.2)'" onmouseout="this.style.opacity='0.85';this.style.background='rgba(128,128,128,0.1)'">{{ $s4 }} ({{ $c4 }})</a>{{ end }}
+          {{ if $s5 }}<a href="https://app.todoist.com/app/label/{{ $s5 }}" target="_blank" class="size-h5 color-primary" style="background:rgba(128,128,128,0.1);border-radius:4px;padding:1px 7px;text-decoration:none;transition:opacity 0.15s;opacity:0.85;" onmouseover="this.style.opacity='1';this.style.background='rgba(128,128,128,0.2)'" onmouseout="this.style.opacity='0.85';this.style.background='rgba(128,128,128,0.1)'">{{ $s5 }} ({{ $c5 }})</a>{{ end }}
+        </div>
+      </div>
+      {{ end }}
+
+      {{/* ── Link to Todoist app ──────────────────────────────────── */}}
+      <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15);text-align:right">
+        <a href="https://app.todoist.com" target="_blank" class="color-subdue size-h6" style="opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">View Tasks on Todoist -&gt;</a>
+      </div>
+
+    </div>
 ```
 
-### 4. Restart Dynacat
-
-```bash
-# Docker
-docker compose restart
-
-# Binary
-systemctl restart dynacat
-```
+The full widget file is also available at [`widgets/todoist-dashboard.yml`](widgets/todoist-dashboard.yml).
 
 ---
 
 ## Caching
 
-The widget defaults to `cache: 15m`. Change it to suit your needs. Use `cache: 1s` while developing to see changes without restarting Dynacat.
-
----
-
-## API Fields Reference
-
-The widget uses three Todoist API v1 endpoints. All fields are guarded with `.Exists` checks so the widget degrades gracefully if a field is absent.
-
-| Field | Endpoint | Notes |
-|-------|----------|-------|
-| `karma` | `/user` | Integer karma score |
-| `karma_trend` | `/user` | `"up"` or `"down"` — shown as arrow |
-| `completed_today` | `/user` | Tasks completed today |
-| `daily_goal` | `/user` | Daily task goal target |
-| `completed_count` | `/user` | All-time completed count |
-| `karma_completed_count` | `/user` | Fallback for all-time count |
-| `priority` | `/tasks` | 4 = urgent, 3 = high, 2 = medium, 1 = normal |
-| `labels` | `/tasks` | Array of label strings per task |
-| `name` | `/projects` | Project name |
+The widget defaults to `cache: 15m`. Adjust to suit your needs. Use `cache: 1s` while developing to see live changes without restarting Dynacat.
 
 ---
 
 ## Troubleshooting
 
-### Widget shows no content / blank
+**Widget shows no content / blank**
+- Confirm `TODOIST_API_TOKEN` is set in your Dynacat `.env`
+- Check logs: `docker compose logs -f`
+- Test the token directly:
+  ```bash
+  curl -s -H "Authorization: Bearer YOUR_TOKEN" \
+    https://api.todoist.com/api/v1/user | python3 -m json.tool
+  ```
 
-1. Confirm `TODOIST_API_TOKEN` is set in your Dynacat `.env`
-2. Check logs: `docker compose logs -f`
-3. Test the API directly:
-   ```bash
-   curl -s -H "Authorization: Bearer YOUR_TOKEN" \
-     https://api.todoist.com/api/v1/user | python3 -m json.tool
-   ```
+**Labels section not showing**
+- The section is hidden automatically when no open tasks have labels assigned.
 
-### Labels section not showing
+**Streaks not showing**
+- Streak data is not exposed by Todoist API v1. This is an API limitation, not a bug. See the note at the top of this README.
 
-Labels only appear if at least one open task has a label assigned. If all your open tasks are unlabelled, the section is hidden automatically.
-
-### Streaks not showing
-
-Streak data (current streak, best streak) is **not exposed by Todoist API v1**. It is only visible inside the Todoist app under the Productivity section. This is a Todoist API limitation — not a widget bug. If Todoist ever adds streak fields to the API, the widget will display them automatically since it uses `.Exists` guards throughout.
-
-### Per-project task counts not showing
-
-The `/tasks` endpoint does not return a `project_id` field that can be reliably matched against project IDs from the `/projects` endpoint in Go templates. Projects are shown as name badges only.
+**Per-project task counts not showing**
+- The `/tasks` endpoint does not return a `project_id` field that can be reliably matched against project IDs in Go templates. Projects are shown as name badges only.
 
 ---
 
@@ -115,26 +245,14 @@ Uses [Todoist API v1](https://developer.todoist.com/api/v1/).
 
 - **Auth:** `Authorization: Bearer {token}` header
 - **User/Stats:** `GET https://api.todoist.com/api/v1/user`
-- **Tasks:** `GET https://api.todoist.com/api/v1/tasks`
+- **Open Tasks:** `GET https://api.todoist.com/api/v1/tasks`
 - **Projects:** `GET https://api.todoist.com/api/v1/projects`
 - **Rate limit:** 1000 requests / 15 minutes per user
 
 ---
 
-## Dynacat `custom-api` reference
+## Credits
 
-For template syntax and all available options, see the [Glance configuration docs](https://github.com/glanceapp/glance/blob/main/docs/configuration.md#custom-api).
+Created by [@jshields-ca](https://github.com/jshields-ca) — [scootr.ca](https://scootr.ca)
 
-Templates use [gjson](https://github.com/tidwall/gjson) path syntax for JSON access.
-
----
-
-## Contributing
-
-Issues and pull requests welcome. If you discover additional Todoist API v1 fields (streaks, goals, etc.), please open an issue or PR.
-
----
-
-## License
-
-MIT
+Built for [Dynacat](https://github.com/Panonim/dynacat), a self-hosted dashboard application.
