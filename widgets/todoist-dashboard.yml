@@ -1,7 +1,8 @@
 # Todoist Dashboard Widget for Dynacat
 #
-# Single consolidated widget showing karma, productivity stats, project
-# overview with task counts, streaks, and a link to the Todoist app.
+# Single consolidated widget showing karma, productivity stats, priority
+# breakdown, project overview with task counts, streaks, and a link to
+# the Todoist app.
 #
 # REQUIRED: Add to your Dynacat .env file:
 #   TODOIST_API_TOKEN=your_personal_api_token_here
@@ -30,18 +31,29 @@
     {{ $tasks    := (.Subrequest "tasks").JSON.Array "." }}
     {{ $projects := (.Subrequest "projects").JSON.Array "results" }}
 
+    {{/* ── Priority counts ──────────────────────────────────────── */}}
+    {{ $p4 := 0 }}{{ $p3 := 0 }}{{ $p2 := 0 }}{{ $p1 := 0 }}
+    {{ range $tasks }}
+      {{ $p := .Int "priority" }}
+      {{ if eq $p 4 }}{{ $p4 = add $p4 1 }}
+      {{ else if eq $p 3 }}{{ $p3 = add $p3 1 }}
+      {{ else if eq $p 2 }}{{ $p2 = add $p2 1 }}
+      {{ else }}{{ $p1 = add $p1 1 }}
+      {{ end }}
+    {{ end }}
+
     <div style="display:flex;flex-direction:column;gap:10px">
 
       {{/* ── Karma ────────────────────────────────────────────────── */}}
       {{ if .JSON.Exists "karma" }}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="color-subdue size-h5">Karma</span>
+        <span class="color-subdue size-h4">Karma</span>
         <span>
-          <span class="color-highlight size-h4" style="font-weight:600">{{ .JSON.Int "karma" }}</span>
+          <span class="color-highlight size-h3" style="font-weight:600">{{ .JSON.Int "karma" }}</span>
           {{ if .JSON.Exists "karma_trend" }}
             {{ $trend := .JSON.String "karma_trend" }}
-            {{ if eq $trend "up" }}<span class="color-positive size-h5">&nbsp;&#9650;</span>
-            {{ else if eq $trend "down" }}<span class="color-negative size-h5">&nbsp;&#9660;</span>
+            {{ if eq $trend "up" }}<span class="color-positive size-h4">&nbsp;&#9650;</span>
+            {{ else if eq $trend "down" }}<span class="color-negative size-h4">&nbsp;&#9660;</span>
             {{ end }}
           {{ end }}
         </span>
@@ -51,9 +63,9 @@
       {{/* ── Tasks completed today ────────────────────────────────── */}}
       {{ if .JSON.Exists "completed_today" }}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="color-subdue size-h5">Completed today</span>
-        <span class="color-positive size-h4" style="font-weight:600">{{ .JSON.Int "completed_today" }}
-          {{ if .JSON.Exists "daily_goal" }}<span class="color-subdue size-h5">/ {{ .JSON.Int "daily_goal" }}</span>{{ end }}
+        <span class="color-subdue size-h4">Completed today</span>
+        <span class="color-positive size-h3" style="font-weight:600">{{ .JSON.Int "completed_today" }}
+          {{ if .JSON.Exists "daily_goal" }}<span class="color-subdue size-h4">/ {{ .JSON.Int "daily_goal" }}</span>{{ end }}
         </span>
       </div>
       {{ end }}
@@ -61,44 +73,67 @@
       {{/* ── All-time completed ───────────────────────────────────── */}}
       {{ if .JSON.Exists "completed_count" }}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="color-subdue size-h5">All-time completed</span>
-        <span class="color-primary size-h5">{{ .JSON.Int "completed_count" }}</span>
+        <span class="color-subdue size-h4">All-time completed</span>
+        <span class="color-primary size-h4">{{ .JSON.Int "completed_count" }}</span>
       </div>
       {{ else if .JSON.Exists "karma_completed_count" }}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="color-subdue size-h5">All-time completed</span>
-        <span class="color-primary size-h5">{{ .JSON.Int "karma_completed_count" }}</span>
+        <span class="color-subdue size-h4">All-time completed</span>
+        <span class="color-primary size-h4">{{ .JSON.Int "karma_completed_count" }}</span>
       </div>
       {{ end }}
 
       {{/* ── Streaks ──────────────────────────────────────────────── */}}
       {{ if .JSON.Exists "streak_days" }}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="color-subdue size-h5">Current streak</span>
-        <span class="color-highlight size-h5">{{ .JSON.Int "streak_days" }} days &#128293;</span>
+        <span class="color-subdue size-h4">Current streak</span>
+        <span class="color-highlight size-h4">{{ .JSON.Int "streak_days" }} days &#128293;</span>
       </div>
       {{ end }}
       {{ if .JSON.Exists "longest_streak" }}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="color-subdue size-h5">Longest streak</span>
-        <span class="color-primary size-h5">{{ .JSON.Int "longest_streak" }} days</span>
+        <span class="color-subdue size-h4">Longest streak</span>
+        <span class="color-primary size-h4">{{ .JSON.Int "longest_streak" }} days</span>
+      </div>
+      {{ end }}
+
+      {{/* ── Open tasks + priority breakdown ─────────────────────── */}}
+      {{ if gt (len $tasks) 0 }}
+      <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span class="color-subdue size-h4">Open tasks</span>
+          <span class="color-primary size-h4" style="font-weight:600">{{ len $tasks }}</span>
+        </div>
+        <div style="display:flex;gap:14px">
+          <span title="Urgent"><span class="color-negative">&#9679;</span>&nbsp;<span class="color-subdue size-h4">{{ $p4 }}</span></span>
+          <span title="High"><span class="color-highlight">&#9679;</span>&nbsp;<span class="color-subdue size-h4">{{ $p3 }}</span></span>
+          <span title="Medium"><span class="color-primary">&#9679;</span>&nbsp;<span class="color-subdue size-h4">{{ $p2 }}</span></span>
+          <span title="Normal"><span class="color-subdue">&#9675;</span>&nbsp;<span class="color-subdue size-h4">{{ $p1 }}</span></span>
+        </div>
       </div>
       {{ end }}
 
       {{/* ── Projects with open task counts ──────────────────────── */}}
       {{ if gt (len $projects) 0 }}
       <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15)">
-        <span class="color-subdue size-h6">Projects ({{ len $projects }})</span>
-        <div style="display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:5px">
+        <span class="color-subdue size-h5">Projects ({{ len $projects }})</span>
+
+        {{/* DEBUG: shows raw field values from first task to diagnose project_id field name */}}
+        {{/* Remove this block once project counts are confirmed working */}}
+        {{ if gt (len $tasks) 0 }}
+        <div class="color-subdue size-h6" style="margin-top:4px;opacity:0.5;word-break:break-all">
+          dbg: pid="{{ (index $tasks 0).String "project_id" }}" | pid2="{{ (index $tasks 0).String "projectId" }}" | proj="{{ (index $projects 0).String "id" }}"
+        </div>
+        {{ end }}
+
+        <div style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:6px">
           {{ range $projects }}
           {{ $pid := .String "id" }}
           {{ $count := 0 }}
           {{ range $tasks }}
             {{ if eq (.String "project_id") $pid }}{{ $count = add $count 1 }}{{ end }}
           {{ end }}
-          <span class="size-h5">{{ .String "name" }}
-            <span class="color-subdue size-h6">({{ $count }})</span>
-          </span>
+          <span class="size-h4">{{ .String "name" }}&nbsp;<span class="color-subdue size-h5">({{ $count }})</span></span>
           {{ end }}
         </div>
       </div>
@@ -106,7 +141,7 @@
 
       {{/* ── Link to Todoist app ──────────────────────────────────── */}}
       <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15);display:flex;justify-content:flex-end">
-        <a href="https://app.todoist.com" class="color-primary size-h5" target="_blank">Open Todoist -&gt;</a>
+        <a href="https://app.todoist.com" class="color-primary size-h4" target="_blank">Open Todoist -&gt;</a>
       </div>
 
     </div>
