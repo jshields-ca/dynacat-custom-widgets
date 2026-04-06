@@ -13,9 +13,9 @@ A single `custom-api` widget that shows karma, task stats, priority breakdown, l
 | **Karma** | Current score with up/down trend indicator |
 | **Completed today** | Tasks done today vs. your daily goal |
 | **All-time completed** | Total tasks completed across all time |
-| **Open tasks** | Total count with priority breakdown (urgent / high / medium / normal) |
-| **Labels** | Top 5 labels by frequency across open tasks, sorted highest count first, each showing a usage count |
-| **Projects** | All project names as compact badges, with total project count |
+| **Open tasks** | Total count with P1/P2/P3/P4 priority breakdown (P4 covers "no priority" since both map to API priority=1) |
+| **Top Labels** | Top 5 labels by frequency across open tasks, sorted highest count first — each badge links directly to that label in Todoist |
+| **Active Projects** | All project names as compact badges with total count — each badge links directly to that project in Todoist |
 | **View Tasks on Todoist** | Subdued link to the Todoist app (fades in on hover) |
 
 ---

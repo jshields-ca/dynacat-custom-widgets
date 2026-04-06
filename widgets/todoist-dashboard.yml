@@ -119,20 +119,24 @@
           <span class="color-primary size-h3" style="font-weight:600">{{ len $tasks }}</span>
         </div>
         <div style="display:flex;gap:16px">
-          <span title="Urgent" style="display:flex;align-items:center;gap:4px">
+          <span title="P1 – Very Urgent" style="display:flex;align-items:center;gap:3px">
             <span class="color-negative size-h4">&#9679;</span>
+            <span class="color-negative size-h5">P1</span>
             <span class="size-h4">{{ $p4 }}</span>
           </span>
-          <span title="High" style="display:flex;align-items:center;gap:4px">
+          <span title="P2 – Urgent" style="display:flex;align-items:center;gap:3px">
             <span class="color-highlight size-h4">&#9679;</span>
+            <span class="color-highlight size-h5">P2</span>
             <span class="size-h4">{{ $p3 }}</span>
           </span>
-          <span title="Medium" style="display:flex;align-items:center;gap:4px">
+          <span title="P3 – Medium" style="display:flex;align-items:center;gap:3px">
             <span class="color-primary size-h4">&#9679;</span>
+            <span class="color-primary size-h5">P3</span>
             <span class="size-h4">{{ $p2 }}</span>
           </span>
-          <span title="Normal" style="display:flex;align-items:center;gap:4px">
+          <span title="P4 / No Priority" style="display:flex;align-items:center;gap:3px">
             <span class="color-subdue size-h4">&#9675;</span>
+            <span class="color-subdue size-h5">P4</span>
             <span class="size-h4">{{ $p1 }}</span>
           </span>
         </div>
@@ -142,13 +146,13 @@
       {{/* ── Labels / Tag cloud (top 5 by frequency) ──────────────── */}}
       {{ if $s1 }}
       <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15)">
-        <div class="size-h5" style="margin-bottom:6px">Labels</div>
+        <div class="size-h5" style="margin-bottom:6px">Top Labels</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px">
-          <span class="size-h5" style="background:rgba(128,128,128,0.12);border-radius:4px;padding:1px 7px">{{ $s1 }} ({{ $c1 }})</span>
-          {{ if $s2 }}<span class="size-h5" style="background:rgba(128,128,128,0.12);border-radius:4px;padding:1px 7px">{{ $s2 }} ({{ $c2 }})</span>{{ end }}
-          {{ if $s3 }}<span class="size-h5" style="background:rgba(128,128,128,0.12);border-radius:4px;padding:1px 7px">{{ $s3 }} ({{ $c3 }})</span>{{ end }}
-          {{ if $s4 }}<span class="size-h5" style="background:rgba(128,128,128,0.12);border-radius:4px;padding:1px 7px">{{ $s4 }} ({{ $c4 }})</span>{{ end }}
-          {{ if $s5 }}<span class="size-h5" style="background:rgba(128,128,128,0.12);border-radius:4px;padding:1px 7px">{{ $s5 }} ({{ $c5 }})</span>{{ end }}
+          <a href="https://app.todoist.com/app/label/{{ $s1 }}" target="_blank" class="size-h5" style="background:rgba(128,128,128,0.12);border-radius:4px;padding:1px 7px;text-decoration:none;color:inherit">{{ $s1 }} ({{ $c1 }})</a>
+          {{ if $s2 }}<a href="https://app.todoist.com/app/label/{{ $s2 }}" target="_blank" class="size-h5" style="background:rgba(128,128,128,0.12);border-radius:4px;padding:1px 7px;text-decoration:none;color:inherit">{{ $s2 }} ({{ $c2 }})</a>{{ end }}
+          {{ if $s3 }}<a href="https://app.todoist.com/app/label/{{ $s3 }}" target="_blank" class="size-h5" style="background:rgba(128,128,128,0.12);border-radius:4px;padding:1px 7px;text-decoration:none;color:inherit">{{ $s3 }} ({{ $c3 }})</a>{{ end }}
+          {{ if $s4 }}<a href="https://app.todoist.com/app/label/{{ $s4 }}" target="_blank" class="size-h5" style="background:rgba(128,128,128,0.12);border-radius:4px;padding:1px 7px;text-decoration:none;color:inherit">{{ $s4 }} ({{ $c4 }})</a>{{ end }}
+          {{ if $s5 }}<a href="https://app.todoist.com/app/label/{{ $s5 }}" target="_blank" class="size-h5" style="background:rgba(128,128,128,0.12);border-radius:4px;padding:1px 7px;text-decoration:none;color:inherit">{{ $s5 }} ({{ $c5 }})</a>{{ end }}
         </div>
       </div>
       {{ end }}
@@ -157,12 +161,12 @@
       {{ if gt (len $projects) 0 }}
       <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <span class="size-h4">Projects</span>
+          <span class="size-h4">Active Projects</span>
           <span class="color-subdue size-h4">{{ len $projects }}</span>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:4px">
           {{ range $projects }}
-          <span class="size-h5" style="background:rgba(128,128,128,0.1);border-radius:4px;padding:1px 7px">{{ .String "name" }}</span>
+          <a href="https://app.todoist.com/app/project/{{ .String "id" }}" target="_blank" class="size-h5" style="background:rgba(128,128,128,0.1);border-radius:4px;padding:1px 7px;text-decoration:none;color:inherit">{{ .String "name" }}</a>
           {{ end }}
         </div>
       </div>
