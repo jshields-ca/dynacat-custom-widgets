@@ -14,7 +14,7 @@ A single `custom-api` widget that shows karma, task stats, priority breakdown, l
 | **Completed today** | Tasks done today vs. your daily goal |
 | **All-time completed** | Total tasks completed across all time |
 | **Open tasks** | Total count with priority breakdown (urgent / high / medium / normal) |
-| **Labels** | Tag cloud of all labels in use across open tasks |
+| **Labels** | Top 5 most-used labels across open tasks, each showing a usage count |
 | **Projects** | All project names as compact badges, with total project count |
 | **Open Todoist** | Direct link to the Todoist app |
 
@@ -65,6 +65,24 @@ The widget defaults to `cache: 15m`. Change it to suit your needs. Use `cache: 1
 
 ---
 
+## API Fields Reference
+
+The widget uses three Todoist API v1 endpoints. All fields are guarded with `.Exists` checks so the widget degrades gracefully if a field is absent.
+
+| Field | Endpoint | Notes |
+|-------|----------|-------|
+| `karma` | `/user` | Integer karma score |
+| `karma_trend` | `/user` | `"up"` or `"down"` — shown as arrow |
+| `completed_today` | `/user` | Tasks completed today |
+| `daily_goal` | `/user` | Daily task goal target |
+| `completed_count` | `/user` | All-time completed count |
+| `karma_completed_count` | `/user` | Fallback for all-time count |
+| `priority` | `/tasks` | 4 = urgent, 3 = high, 2 = medium, 1 = normal |
+| `labels` | `/tasks` | Array of label strings per task |
+| `name` | `/projects` | Project name |
+
+---
+
 ## Troubleshooting
 
 ### Widget shows no content / blank
@@ -77,9 +95,17 @@ The widget defaults to `cache: 15m`. Change it to suit your needs. Use `cache: 1
      https://api.todoist.com/api/v1/user | python3 -m json.tool
    ```
 
+### Labels section not showing
+
+Labels only appear if at least one open task has a label assigned. If all your open tasks are unlabelled, the section is hidden automatically.
+
 ### Streaks not showing
 
-Streak data (current streak, best streak) is **not exposed by Todoist API v1**. It is only visible inside the Todoist app under the Productivity section. If Todoist adds streak fields to the API in a future update, the widget will display them automatically since it uses `.Exists` guards.
+Streak data (current streak, best streak) is **not exposed by Todoist API v1**. It is only visible inside the Todoist app under the Productivity section. This is a Todoist API limitation — not a widget bug. If Todoist ever adds streak fields to the API, the widget will display them automatically since it uses `.Exists` guards throughout.
+
+### Per-project task counts not showing
+
+The `/tasks` endpoint does not return a `project_id` field that can be reliably matched against project IDs from the `/projects` endpoint in Go templates. Projects are shown as name badges only.
 
 ---
 
