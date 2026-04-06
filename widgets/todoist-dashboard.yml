@@ -30,7 +30,9 @@
       headers:
         Authorization: Bearer ${TODOIST_API_TOKEN}
   template: |
-    {{ $tasks    := (.Subrequest "tasks").JSON.Array "." }}
+    {{/* Tasks endpoint returns a bare array — try "." first, fall back to "results" */}}
+    {{ $tasks := (.Subrequest "tasks").JSON.Array "." }}
+    {{ if eq (len $tasks) 0 }}{{ $tasks = (.Subrequest "tasks").JSON.Array "results" }}{{ end }}
     {{ $projects := (.Subrequest "projects").JSON.Array "results" }}
 
     {{/* ── Pre-compute priority counts ───────────────────────────── */}}
@@ -126,7 +128,7 @@
         <div style="display:flex;flex-wrap:wrap;gap:4px">
           {{ range $tasks }}
             {{ range .Array "labels" }}
-            <span class="size-h5" style="background:rgba(128,128,128,0.12);border-radius:4px;padding:1px 7px">{{ .String "." }}</span>
+            <span class="size-h5" style="background:rgba(128,128,128,0.12);border-radius:4px;padding:1px 7px">{{ .String "@this" }}</span>
             {{ end }}
           {{ end }}
         </div>
