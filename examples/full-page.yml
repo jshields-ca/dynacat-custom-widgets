@@ -29,34 +29,28 @@
               headers:
                 Authorization: Bearer ${TODOIST_API_TOKEN}
           template: |
-            {{ $name := .JSON.String "full_name" }}
-            {{ $premium := .JSON.Bool "is_premium" }}
             {{ $tasks := (.Subrequest "tasks").JSON.Array "." }}
             <div style="display:flex;flex-direction:column;gap:8px">
-              <div>
-                <span class="size-h4 color-highlight">{{ $name }}</span>
-                {{ if $premium }}<span class="size-h6 color-positive" style="margin-left:6px">Pro</span>{{ end }}
-              </div>
-              <div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-top:1px solid rgba(128,128,128,0.15)">
-                <span class="color-subdue size-h6">Open tasks</span>
-                <span class="color-primary size-h5" style="font-weight:600">{{ len $tasks }}</span>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span class="color-subdue size-h5">Open tasks</span>
+                <span class="color-primary size-h4" style="font-weight:600">{{ len $tasks }}</span>
               </div>
               {{ if .JSON.Exists "karma" }}
               <div style="display:flex;align-items:center;gap:6px">
-                <span class="color-subdue size-h6">Karma</span>
-                <span class="color-highlight size-h5" style="font-weight:600">{{ .JSON.Int "karma" }}</span>
+                <span class="color-subdue size-h5">Karma</span>
+                <span class="color-highlight size-h4" style="font-weight:600">{{ .JSON.Int "karma" }}</span>
                 {{ if .JSON.Exists "karma_trend" }}
                   {{ $trend := .JSON.String "karma_trend" }}
-                  {{ if eq $trend "up" }}<span class="color-positive size-h6">&#9650;</span>
-                  {{ else if eq $trend "down" }}<span class="color-negative size-h6">&#9660;</span>
+                  {{ if eq $trend "up" }}<span class="color-positive size-h5">&#9650;</span>
+                  {{ else if eq $trend "down" }}<span class="color-negative size-h5">&#9660;</span>
                   {{ end }}
                 {{ end }}
               </div>
               {{ end }}
               {{ if .JSON.Exists "streak_days" }}
               <div style="display:flex;align-items:center;gap:6px">
-                <span class="color-subdue size-h6">Streak</span>
-                <span class="color-highlight size-h6">{{ .JSON.Int "streak_days" }} days &#128293;</span>
+                <span class="color-subdue size-h5">Streak</span>
+                <span class="color-highlight size-h5">{{ .JSON.Int "streak_days" }} days &#128293;</span>
               </div>
               {{ end }}
             </div>
@@ -74,14 +68,14 @@
               headers:
                 Authorization: Bearer ${TODOIST_API_TOKEN}
           template: |
-            {{ $projects := .JSON.Array "." }}
+            {{ $projects := .JSON.Array "results" }}
             {{ $tasks := (.Subrequest "tasks").JSON.Array "." }}
             <ul class="list list-gap-10">
               {{ range $projects }}
               {{ $pid := .String "id" }}
               {{ $count := 0 }}
               {{ range $tasks }}
-                {{ if eq (.String "project_id") $pid }}{{ $count = add $count 1 }}{{ end }}
+                {{ if eq (.String "projectId") $pid }}{{ $count = add $count 1 }}{{ end }}
               {{ end }}
               <li style="display:flex;align-items:center;justify-content:space-between">
                 <span class="color-primary">{{ .String "name" }}</span>
@@ -107,9 +101,6 @@
           url: https://api.todoist.com/api/v1/tasks
           headers:
             Authorization: Bearer ${TODOIST_API_TOKEN}
-          parameters:
-            sorted_by: priority
-            sort_order: asc
           template: |
             {{ $tasks := .JSON.Array "." }}
             {{ if eq (len $tasks) 0 }}
@@ -119,10 +110,10 @@
               {{ range $tasks }}
               {{ $p := .Int "priority" }}
               <li style="display:flex;align-items:baseline;gap:6px">
-                {{ if eq $p 4 }}<span class="color-negative" style="font-size:0.7em" title="Urgent">&#9679;</span>
-                {{ else if eq $p 3 }}<span class="color-highlight" style="font-size:0.7em" title="High">&#9679;</span>
-                {{ else if eq $p 2 }}<span class="color-primary" style="font-size:0.7em" title="Medium">&#9679;</span>
-                {{ else }}<span class="color-subdue" style="font-size:0.7em" title="Normal">&#9675;</span>
+                {{ if eq $p 4 }}<span class="color-negative" title="Urgent">&#9679;</span>
+                {{ else if eq $p 3 }}<span class="color-highlight" title="High">&#9679;</span>
+                {{ else if eq $p 2 }}<span class="color-primary" title="Medium">&#9679;</span>
+                {{ else }}<span class="color-subdue" title="Normal">&#9675;</span>
                 {{ end }}
                 <span>
                   <a href="{{ .String "url" }}" class="color-primary-if-not-visited visited-indicator" target="_blank">{{ .String "content" }}</a>
@@ -154,10 +145,10 @@
         #       {{ range $tasks }}
         #       {{ $p := .Int "priority" }}
         #       <li style="display:flex;align-items:baseline;gap:6px">
-        #         {{ if eq $p 4 }}<span class="color-negative" style="font-size:0.7em">&#9679;</span>
-        #         {{ else if eq $p 3 }}<span class="color-highlight" style="font-size:0.7em">&#9679;</span>
-        #         {{ else if eq $p 2 }}<span class="color-primary" style="font-size:0.7em">&#9679;</span>
-        #         {{ else }}<span class="color-subdue" style="font-size:0.7em">&#9675;</span>
+        #         {{ if eq $p 4 }}<span class="color-negative">&#9679;</span>
+        #         {{ else if eq $p 3 }}<span class="color-highlight">&#9679;</span>
+        #         {{ else if eq $p 2 }}<span class="color-primary">&#9679;</span>
+        #         {{ else }}<span class="color-subdue">&#9675;</span>
         #         {{ end }}
         #         <span>
         #           <a href="{{ .String "url" }}" class="color-primary-if-not-visited visited-indicator" target="_blank">{{ .String "content" }}</a>
