@@ -47,7 +47,7 @@
       {{/* ── Karma ────────────────────────────────────────────────── */}}
       {{ if .JSON.Exists "karma" }}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="color-subdue size-h4">Karma</span>
+        <span class="size-h4">Karma</span>
         <span>
           <span class="color-highlight size-h3" style="font-weight:600">{{ .JSON.Int "karma" }}</span>
           {{ if .JSON.Exists "karma_trend" }}
@@ -63,7 +63,7 @@
       {{/* ── Tasks completed today ────────────────────────────────── */}}
       {{ if .JSON.Exists "completed_today" }}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="color-subdue size-h4">Completed today</span>
+        <span class="size-h4">Completed today</span>
         <span class="color-positive size-h3" style="font-weight:600">{{ .JSON.Int "completed_today" }}
           {{ if .JSON.Exists "daily_goal" }}<span class="color-subdue size-h4">/ {{ .JSON.Int "daily_goal" }}</span>{{ end }}
         </span>
@@ -73,27 +73,55 @@
       {{/* ── All-time completed ───────────────────────────────────── */}}
       {{ if .JSON.Exists "completed_count" }}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="color-subdue size-h4">All-time completed</span>
+        <span class="size-h4">All-time completed</span>
         <span class="color-primary size-h4">{{ .JSON.Int "completed_count" }}</span>
       </div>
       {{ else if .JSON.Exists "karma_completed_count" }}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="color-subdue size-h4">All-time completed</span>
+        <span class="size-h4">All-time completed</span>
         <span class="color-primary size-h4">{{ .JSON.Int "karma_completed_count" }}</span>
       </div>
       {{ end }}
 
-      {{/* ── Streaks ──────────────────────────────────────────────── */}}
+      {{/* ── Streaks — try all known field names ─────────────────── */}}
       {{ if .JSON.Exists "streak_days" }}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="color-subdue size-h4">Current streak</span>
+        <span class="size-h4">Current streak</span>
         <span class="color-highlight size-h4">{{ .JSON.Int "streak_days" }} days &#128293;</span>
       </div>
+      {{ else if .JSON.Exists "current_streak_days" }}
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="size-h4">Current streak</span>
+        <span class="color-highlight size-h4">{{ .JSON.Int "current_streak_days" }} days &#128293;</span>
+      </div>
+      {{ else if .JSON.Exists "goals.current_streak" }}
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="size-h4">Current streak</span>
+        <span class="color-highlight size-h4">{{ .JSON.Int "goals.current_streak" }} days &#128293;</span>
+      </div>
       {{ end }}
+
       {{ if .JSON.Exists "longest_streak" }}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span class="color-subdue size-h4">Longest streak</span>
+        <span class="size-h4">Best streak</span>
         <span class="color-primary size-h4">{{ .JSON.Int "longest_streak" }} days</span>
+      </div>
+      {{ else if .JSON.Exists "longest_streak_days" }}
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="size-h4">Best streak</span>
+        <span class="color-primary size-h4">{{ .JSON.Int "longest_streak_days" }} days</span>
+      </div>
+      {{ else if .JSON.Exists "goals.longest_streak" }}
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="size-h4">Best streak</span>
+        <span class="color-primary size-h4">{{ .JSON.Int "goals.longest_streak" }} days</span>
+      </div>
+      {{ end }}
+
+      {{ if .JSON.Exists "average_daily_completed" }}
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="size-h4">Avg tasks/day</span>
+        <span class="color-primary size-h4">{{ .JSON.String "average_daily_completed" }}</span>
       </div>
       {{ end }}
 
@@ -101,14 +129,14 @@
       {{ if gt (len $tasks) 0 }}
       <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <span class="color-subdue size-h4">Open tasks</span>
+          <span class="size-h4">Open tasks</span>
           <span class="color-primary size-h4" style="font-weight:600">{{ len $tasks }}</span>
         </div>
         <div style="display:flex;gap:14px">
-          <span title="Urgent"><span class="color-negative">&#9679;</span>&nbsp;<span class="color-subdue size-h4">{{ $p4 }}</span></span>
-          <span title="High"><span class="color-highlight">&#9679;</span>&nbsp;<span class="color-subdue size-h4">{{ $p3 }}</span></span>
-          <span title="Medium"><span class="color-primary">&#9679;</span>&nbsp;<span class="color-subdue size-h4">{{ $p2 }}</span></span>
-          <span title="Normal"><span class="color-subdue">&#9675;</span>&nbsp;<span class="color-subdue size-h4">{{ $p1 }}</span></span>
+          <span title="Urgent">&#9679;&nbsp;<span class="color-negative size-h4">{{ $p4 }}</span></span>
+          <span title="High">&#9679;&nbsp;<span class="color-highlight size-h4">{{ $p3 }}</span></span>
+          <span title="Medium">&#9679;&nbsp;<span class="color-primary size-h4">{{ $p2 }}</span></span>
+          <span title="Normal">&#9675;&nbsp;<span class="color-subdue size-h4">{{ $p1 }}</span></span>
         </div>
       </div>
       {{ end }}
@@ -116,22 +144,22 @@
       {{/* ── Projects with open task counts ──────────────────────── */}}
       {{ if gt (len $projects) 0 }}
       <div style="padding-top:8px;border-top:1px solid rgba(128,128,128,0.15)">
-        <span class="color-subdue size-h5">Projects ({{ len $projects }})</span>
+        <span class="size-h5">Projects ({{ len $projects }})</span>
 
-        {{/* DEBUG: shows raw field values from first task to diagnose project_id field name */}}
-        {{/* Remove this block once project counts are confirmed working */}}
+        {{/* DEBUG: int-based comparison values — remove once counts work */}}
         {{ if gt (len $tasks) 0 }}
-        <div class="color-subdue size-h6" style="margin-top:4px;opacity:0.5;word-break:break-all">
-          dbg: pid="{{ (index $tasks 0).String "project_id" }}" | pid2="{{ (index $tasks 0).String "projectId" }}" | proj="{{ (index $projects 0).String "id" }}"
+        <div class="color-subdue size-h6" style="margin-top:3px;opacity:0.5">
+          dbg t[0]: project_id(str)="{{ (index $tasks 0).String "project_id" }}" project_id(int)={{ (index $tasks 0).Int "project_id" }} | p[0] id(str)="{{ (index $projects 0).String "id" }}" id(int)={{ (index $projects 0).Int "id" }}
         </div>
         {{ end }}
 
         <div style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:6px">
           {{ range $projects }}
-          {{ $pid := .String "id" }}
+          {{ $pidInt := .Int "id" }}
+          {{ $pidStr := .String "id" }}
           {{ $count := 0 }}
           {{ range $tasks }}
-            {{ if eq (.String "project_id") $pid }}{{ $count = add $count 1 }}{{ end }}
+            {{ if eq (.Int "project_id") $pidInt }}{{ $count = add $count 1 }}{{ end }}
           {{ end }}
           <span class="size-h4">{{ .String "name" }}&nbsp;<span class="color-subdue size-h5">({{ $count }})</span></span>
           {{ end }}
