@@ -29,34 +29,28 @@
               headers:
                 Authorization: Bearer ${TODOIST_API_TOKEN}
           template: |
-            {{ $name := .JSON.String "full_name" }}
-            {{ $premium := .JSON.Bool "is_premium" }}
             {{ $tasks := (.Subrequest "tasks").JSON.Array "." }}
             <div style="display:flex;flex-direction:column;gap:8px">
-              <div>
-                <span class="size-h4 color-highlight">{{ $name }}</span>
-                {{ if $premium }}<span class="size-h6 color-positive" style="margin-left:6px">Pro</span>{{ end }}
-              </div>
-              <div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-top:1px solid rgba(128,128,128,0.15)">
-                <span class="color-subdue size-h6">Open tasks</span>
-                <span class="color-primary size-h5" style="font-weight:600">{{ len $tasks }}</span>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span class="color-subdue size-h5">Open tasks</span>
+                <span class="color-primary size-h4" style="font-weight:600">{{ len $tasks }}</span>
               </div>
               {{ if .JSON.Exists "karma" }}
               <div style="display:flex;align-items:center;gap:6px">
-                <span class="color-subdue size-h6">Karma</span>
-                <span class="color-highlight size-h5" style="font-weight:600">{{ .JSON.Int "karma" }}</span>
+                <span class="color-subdue size-h5">Karma</span>
+                <span class="color-highlight size-h4" style="font-weight:600">{{ .JSON.Int "karma" }}</span>
                 {{ if .JSON.Exists "karma_trend" }}
                   {{ $trend := .JSON.String "karma_trend" }}
-                  {{ if eq $trend "up" }}<span class="color-positive size-h6">&#9650;</span>
-                  {{ else if eq $trend "down" }}<span class="color-negative size-h6">&#9660;</span>
+                  {{ if eq $trend "up" }}<span class="color-positive size-h5">&#9650;</span>
+                  {{ else if eq $trend "down" }}<span class="color-negative size-h5">&#9660;</span>
                   {{ end }}
                 {{ end }}
               </div>
               {{ end }}
               {{ if .JSON.Exists "streak_days" }}
               <div style="display:flex;align-items:center;gap:6px">
-                <span class="color-subdue size-h6">Streak</span>
-                <span class="color-highlight size-h6">{{ .JSON.Int "streak_days" }} days &#128293;</span>
+                <span class="color-subdue size-h5">Streak</span>
+                <span class="color-highlight size-h5">{{ .JSON.Int "streak_days" }} days &#128293;</span>
               </div>
               {{ end }}
             </div>

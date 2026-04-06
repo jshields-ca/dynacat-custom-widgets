@@ -31,76 +31,63 @@
       headers:
         Authorization: Bearer ${TODOIST_API_TOKEN}
   template: |
-    {{ $name := .JSON.String "full_name" }}
-    {{ $email := .JSON.String "email" }}
-    {{ $premium := .JSON.Bool "is_premium" }}
     {{ $tasks := (.Subrequest "tasks").JSON.Array "." }}
 
     <div style="display:flex;flex-direction:column;gap:8px">
 
-      {{/* User identity */}}
-      <div>
-        <span class="size-h4 color-highlight">{{ $name }}</span>
-        {{ if $premium }}
-          <span class="size-h6 color-positive" style="margin-left:6px">Pro</span>
-        {{ end }}
-        <br>
-        <span class="size-h6 color-subdue">{{ $email }}</span>
-      </div>
-
       {{/* Open task count — always available */}}
-      <div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-top:1px solid rgba(128,128,128,0.15)">
-        <span class="color-subdue size-h6">Open tasks</span>
-        <span class="color-primary size-h5" style="font-weight:600">{{ len $tasks }}</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="color-subdue size-h5">Open tasks</span>
+        <span class="color-primary size-h4" style="font-weight:600">{{ len $tasks }}</span>
       </div>
 
       {{/* Karma — display if returned by API */}}
       {{ if .JSON.Exists "karma" }}
       <div style="display:flex;align-items:center;gap:6px">
-        <span class="color-subdue size-h6">Karma</span>
-        <span class="color-highlight size-h5" style="font-weight:600">{{ .JSON.Int "karma" }}</span>
+        <span class="color-subdue size-h5">Karma</span>
+        <span class="color-highlight size-h4" style="font-weight:600">{{ .JSON.Int "karma" }}</span>
       </div>
       {{ end }}
 
       {{ if .JSON.Exists "karma_trend" }}
       <div style="display:flex;align-items:center;gap:6px">
-        <span class="color-subdue size-h6">Karma trend</span>
+        <span class="color-subdue size-h5">Karma trend</span>
         {{ $trend := .JSON.String "karma_trend" }}
         {{ if eq $trend "up" }}
-          <span class="color-positive size-h6">&#9650; up</span>
+          <span class="color-positive size-h5">&#9650; up</span>
         {{ else if eq $trend "down" }}
-          <span class="color-negative size-h6">&#9660; down</span>
+          <span class="color-negative size-h5">&#9660; down</span>
         {{ else }}
-          <span class="color-subdue size-h6">&#8212; same</span>
+          <span class="color-subdue size-h5">&#8212; same</span>
         {{ end }}
       </div>
       {{ end }}
 
       {{ if .JSON.Exists "daily_goal" }}
       <div style="display:flex;align-items:center;gap:6px">
-        <span class="color-subdue size-h6">Daily goal</span>
-        <span class="color-primary size-h6">{{ .JSON.Int "daily_goal" }} tasks/day</span>
+        <span class="color-subdue size-h5">Daily goal</span>
+        <span class="color-primary size-h5">{{ .JSON.Int "daily_goal" }} tasks/day</span>
       </div>
       {{ end }}
 
       {{ if .JSON.Exists "weekly_goal" }}
       <div style="display:flex;align-items:center;gap:6px">
-        <span class="color-subdue size-h6">Weekly goal</span>
-        <span class="color-primary size-h6">{{ .JSON.Int "weekly_goal" }} tasks/week</span>
+        <span class="color-subdue size-h5">Weekly goal</span>
+        <span class="color-primary size-h5">{{ .JSON.Int "weekly_goal" }} tasks/week</span>
       </div>
       {{ end }}
 
       {{ if .JSON.Exists "completed_today" }}
       <div style="display:flex;align-items:center;gap:6px">
-        <span class="color-subdue size-h6">Completed today</span>
-        <span class="color-positive size-h6">{{ .JSON.Int "completed_today" }}</span>
+        <span class="color-subdue size-h5">Completed today</span>
+        <span class="color-positive size-h5">{{ .JSON.Int "completed_today" }}</span>
       </div>
       {{ end }}
 
       {{ if .JSON.Exists "streak_days" }}
       <div style="display:flex;align-items:center;gap:6px">
-        <span class="color-subdue size-h6">Current streak</span>
-        <span class="color-highlight size-h6">{{ .JSON.Int "streak_days" }} days &#128293;</span>
+        <span class="color-subdue size-h5">Current streak</span>
+        <span class="color-highlight size-h5">{{ .JSON.Int "streak_days" }} days &#128293;</span>
       </div>
       {{ end }}
 
