@@ -1,83 +1,50 @@
-# Todoist Dashboard
+# dynacat-custom-widgets
 
-A single consolidated `custom-api` widget for [Dynacat](https://github.com/Panonim/dynacat) that displays your Todoist productivity data at a glance:
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Dynacat](https://img.shields.io/badge/Dynacat-compatible-4CAF50)](https://github.com/Panonim/dynacat)
+[![Glance](https://img.shields.io/badge/Glance-compatible-blue)](https://github.com/glanceapp/glance)
+[![custom-api](https://img.shields.io/badge/type-custom--api-informational)](https://github.com/Panonim/dynacat)
 
-- Karma score with trend indicator (↑ / ↓)
-- Tasks completed today vs. your daily goal
-- All-time completed task count
-- Open task count with P1/P2/P3/P4 priority breakdown
-- Active projects as clickable badges, each linking directly into Todoist
-- Top 5 labels by frequency across open tasks, each linking directly into Todoist
-- Quick link to open Todoist
+A collection of drop-in `custom-api` widgets for [Dynacat](https://github.com/Panonim/dynacat) (and [Glance](https://github.com/glanceapp/glance)). Paste a YAML block into your config and go — no extra server required.
 
-No extra server required — Dynacat fetches the Todoist API directly at render time.
+See also the official community widget registry: [dynawidgets](https://github.com/Panonim/dynawidgets)
 
 ---
 
-## Requirements
+## Widgets
 
-- A [Todoist](https://todoist.com) account
-- A Todoist personal API token (free accounts supported)
+| Widget | Description | Config |
+|--------|-------------|--------|
+| [Todoist Dashboard](widgets/todoist/TODOIST-README.md) | Karma, daily productivity stats, open task count with P1–P4 breakdown, active projects, and top labels — all in one widget | [todoist-dashboard.yml](widgets/todoist/todoist-dashboard.yml) |
+| [WakaTime](widgets/wakatime/WAKATIME-README.md) | Weekly coding time, daily average, best day, top languages & projects | [wakatime-widget.yml](widgets/wakatime/wakatime-widget.yml) |
+| [CAD Exchange Rates](widgets/currency-exchange-rate/CURRENCY-EXCHANGE-RATE-README.md) | CAD → USD and EUR exchange rates with last-synced timestamp, updated daily | [currency-exchange-rate.yml](widgets/currency-exchange-rate/currency-exchange-rate.yml) |
+
+---
+
+## Quick Start
+
+1. Open the README for the widget you want (links above).
+2. Set the required environment variable(s) in your Dynacat `.env` file.
+3. Copy the YAML from the widget's config file and paste it into a `widgets:` list in your `glance.yml` / `config.yml`.
+4. Restart Dynacat.
+
+A combined `.env` reference for all widgets is in [`.env.example`](.env.example).
 
 ---
 
 ## Environment Variables
 
-Add the following to your Dynacat `.env` file:
-
-| Variable | Description |
-|----------|-------------|
-| `TODOIST_API_TOKEN` | Your Todoist personal API token |
-
-**How to get your API token:**
-1. Log in to Todoist
-2. Go to **Settings → Integrations → Developer**
-3. Copy the value under **API token**
+| Variable | Widget | Description |
+|----------|--------|-------------|
+| `TODOIST_API_TOKEN` | Todoist Dashboard | Your Todoist personal API token |
+| `WAKATIME_API_KEY` | WakaTime | Your WakaTime Secret API Key |
+| `HOMEPAGE_VAR_EXCHANGE_KEY` | CAD Exchange Rates | Your ExchangeRate-API v6 key |
 
 ---
 
-## Configuration
+## Adding a Widget
 
-Paste the contents of `widgets/todoist-dashboard.yml` into a column's `widgets:` list in your Dynacat `config.yml`:
-
-The full widget file is also available at [`widgets/todoist-dashboard.yml`](widgets/todoist-dashboard.yml).
-
----
-
-## Caching
-
-The widget defaults to `cache: 15m`. Adjust to suit your needs. Use `cache: 1s` while developing to see live changes without restarting Dynacat.
-
----
-
-## Troubleshooting
-
-**Widget shows no content / blank**
-- Confirm `TODOIST_API_TOKEN` is set in your Dynacat `.env`
-- Check logs: `docker compose logs -f`
-- Test the token directly:
-  ```bash
-  curl -s -H "Authorization: Bearer YOUR_TOKEN" \
-    https://api.todoist.com/api/v1/user | python3 -m json.tool
-  ```
-
-**Labels section not showing**
-- The section is hidden automatically when no open tasks have labels assigned.
-
-**Per-project task counts not showing**
-- The `/tasks` endpoint does not return a `project_id` field that can be reliably matched against project IDs in Go templates. Projects are shown as name badges only.
-
----
-
-## API Reference
-
-Uses [Todoist API v1](https://developer.todoist.com/api/v1/).
-
-- **Auth:** `Authorization: Bearer {token}` header
-- **User/Stats:** `GET https://api.todoist.com/api/v1/user`
-- **Open Tasks:** `GET https://api.todoist.com/api/v1/tasks`
-- **Projects:** `GET https://api.todoist.com/api/v1/projects`
-- **Rate limit:** 1000 requests / 15 minutes per user
+Each widget lives in its own folder under `widgets/` with a YAML config file and a README. Pull requests welcome.
 
 ---
 
@@ -85,4 +52,8 @@ Uses [Todoist API v1](https://developer.todoist.com/api/v1/).
 
 Created by [@jshields-ca](https://github.com/jshields-ca) — [scootr.ca](https://scootr.ca)
 
-Built for [Dynacat](https://github.com/Panonim/dynacat), a self-hosted dashboard application.
+Built for [Dynacat](https://github.com/Panonim/dynacat). Also compatible with [Glance](https://github.com/glanceapp/glance).
+
+## License
+
+MIT — see [LICENSE](LICENSE)
