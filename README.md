@@ -15,9 +15,9 @@ See also the official community widget registry: [dynawidgets](https://github.co
 
 | Widget | Description | Config |
 |--------|-------------|--------|
+| [Currency Exchange Rates](widgets/currency-exchange-rate/CURRENCY-EXCHANGE-RATE-README.md) | CAD → USD and EUR exchange rates with last-synced timestamp, updated daily, can be configured to any currency | [currency-exchange-rate.yml](widgets/currency-exchange-rate/currency-exchange-rate.yml) |
 | [Todoist Dashboard](widgets/todoist/TODOIST-README.md) | Karma, daily productivity stats, open task count with P1–P4 breakdown, active projects, and top labels — all in one widget | [todoist-dashboard.yml](widgets/todoist/todoist-dashboard.yml) |
 | [WakaTime](widgets/wakatime/WAKATIME-README.md) | Weekly coding time, daily average, best day, top languages & projects | [wakatime-widget.yml](widgets/wakatime/wakatime-widget.yml) |
-| [Currency Exchange Rates](widgets/currency-exchange-rate/CURRENCY-EXCHANGE-RATE-README.md) | CAD → USD and EUR exchange rates with last-synced timestamp, updated daily, can be configured to any currency | [currency-exchange-rate.yml](widgets/currency-exchange-rate/currency-exchange-rate.yml) |
 
 ---
 
